@@ -54,7 +54,7 @@ class BotLOG:
         prev_button = ""
         # use for detect mouse movement
         prev_mouse_pos = (-1,-1) 
-        for chunck in tqdm(self.logs):
+        for chunck in self.logs:
             for index in range(chunck.shape[0]):
                 def resume_at(index, datetime):
                     if datetime != None:
