@@ -86,13 +86,6 @@ class BotLOG:
         """
         run() réunit toutes les fonctions nécessaire au lancement du bot et les éxecutes
         """
-        result_read_log = self.read_log()
-        while not result_read_log[0]:
-            c = int(input("It seems like you move your mouse, continue to run ?\n1. Yes\n2. No"))
-            if c == 2:
-                break
-            result_read_log = self.read_log()
-        pass
+        return self.read_log()
         
-
-                                    
+        pass
