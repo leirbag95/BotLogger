@@ -43,7 +43,7 @@ class BotLOG:
     def is_mouse_moved(self, current, prev):
         """detect if mouse was moved by user"""
         return prev != current and prev != (-1,-1)
-    
+
     def read_log(self, datetime=None):
         """
         read_log() loop log file and exec all of its action
@@ -77,6 +77,9 @@ class BotLOG:
                         index += 1
                     else:
                         self.click_button(button)
+                elif event_t == EventLOG.MOUSE_SCROLL:
+                    y_scroll = int(log["y_scroll"])
+                    pyautogui.scroll(y_scroll)
                 prev_mouse_pos = (int(log['x']),int(log['y']))
                 prev_button = event_t
         return (True, None)

@@ -21,20 +21,21 @@ class MainWindow:
     def __init__(self):
         win = Tk()
         self.tab_control = ttk.Notebook(win)
-        self.notebookWidget()
+        self.notebookWidget(win)
         win.mainloop()
         pass
 
-    def notebookWidget(self):
-        PlayWindow(self.tab_control)
+    def notebookWidget(self, window):
+        PlayWindow(self.tab_control, window)
         RecordWindow(self.tab_control)
         self.tab_control.pack(expand=1, fill='both')
         pass
 
 
 class PlayWindow:
-    def __init__(self, tab_control):
+    def __init__(self, tab_control, window):
         """ init tab control and view"""
+        self.window = window
         self.tab_control = tab_control
         self.setPlayView()
 
@@ -44,11 +45,13 @@ class PlayWindow:
         pass
     
     def resumeButton(self): 
+        self.window.update()
         self.result_read_log = self.blog.read_log()
         pass
 
     def playButton(self):
         """ play action linked to play button"""
+        # self.window.withdraw()
         log = select.get(select.curselection())
         self.blog = BotLOG(log)
         self.result_read_log = self.blog.run()
