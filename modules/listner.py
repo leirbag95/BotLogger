@@ -20,6 +20,8 @@ class ListenerLOG:
     def on_click(self, x, y, button, pressed):
         if pressed:
             logging.info('"x":{0},"y":{1}, "event_t":1, "button_t":"{2}"'.format(x, y, str(button)))
+        else:
+            logging.info('"x":{0},"y":{1}, "event_t":2, "button_t":"{2}"'.format(x, y, str(button)))
     
     
     def on_scroll(self, x, y, dx, dy):
