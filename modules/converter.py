@@ -19,6 +19,16 @@ class ButtonConverter(Converter):
         elif self.str_btn == "Button.middle":
             return Button.middle
         return Button.left
+    
+    def to_button_string(self):
+        """ return string button for pyautogui control"""
+        if self.str_btn == "Button.left":
+            return "left"
+        elif self.str_btn == "Button.right":
+            return "right"
+        elif self.str_btn == "Button.middle":
+            return "middle"
+        return "left"
 
 
 class KeyConverter(Converter):

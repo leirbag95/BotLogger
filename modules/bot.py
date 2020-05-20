@@ -4,11 +4,13 @@ from pynput.mouse import Button, Controller
 import pyautogui
 import pandas as pd
 from tqdm import tqdm
+from datetime import datetime as dt
 
 
 class EventLOG:
     MOUSE_MOVEMENT=0
     BUTTON_PRESSED=1
+    BUTTON_RELEASED=2
     MOUSE_SCROLL=3
     KEY_PRESSED=4
 
@@ -50,10 +52,9 @@ class BotLOG:
         return True if the file was execute with success
         else return (False, datetime)
         """
-        # use for 2-click
-        prev_button = ""
-        # use for detect mouse movement
-        prev_mouse_pos = (-1,-1) 
+        prev_button = "" # use for 2-click
+        prev_mouse_pos = (-1,-1) # use for detect mouse movement
+        press_datetime = 0 # time press button
         for chunck in self.logs:
             for index in range(chunck.shape[0]):
                 def resume_at(index, datetime):
@@ -70,6 +71,7 @@ class BotLOG:
                         return (False, log["datetime"])
                     self.move_mouse(x, y)
                 elif event_t == EventLOG.BUTTON_PRESSED:
+                    press_datetime = log["datetime"]
                     button = ButtonConverter(log["button_t"]).to_button_controller()
                     # double click button management
                     if prev_button == event_t:
@@ -77,6 +79,12 @@ class BotLOG:
                         index += 1
                     else:
                         self.click_button(button)
+                elif event_t == EventLOG.BUTTON_RELEASED:
+                    button = ButtonConverter(log["button_t"]).to_button_string()
+                    x, y = float(log['x']), float(log['y'])
+                    release_datetime = log["datetime"]
+                    drag_duration = abs(release_datetime - press_datetime)
+                    pyautogui.dragTo(x, y, drag_duration.total_seconds(), button=button)
                 elif event_t == EventLOG.MOUSE_SCROLL:
                     y_scroll = int(log["y_scroll"])
                     pyautogui.scroll(y_scroll)
