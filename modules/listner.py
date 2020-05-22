@@ -12,6 +12,7 @@ class ListenerLOG:
         self.is_pressing = False
         self.x, self.y = 0, 0
         # ['datetime', 'x_mouse', 'y_mouse', 'event_t','click_t', 'dx', 'dy', 'key']
+        logging.FileHandler(".logs/"+filename, mode='w')
         logging.basicConfig(filename=".logs/"+filename, 
                             level=logging.DEBUG, 
                             format='{"datetime":"%(asctime)s",%(message)s}')
