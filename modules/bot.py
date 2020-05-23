@@ -28,7 +28,11 @@ class BotLOG:
 
     def move_mouse(self, x, y):
         """move mouse to (x,y) position"""
+        current_mouse_pos = (pyautogui.position()[0],pyautogui.position()[1])
+        if self.is_mouse_moved(current_mouse_pos, self.prev_mouse_pos):
+            return False
         pyautogui.moveTo(x, y)
+        return True
     
     def click_button(self, button):
         """simple click from mouse"""
@@ -36,8 +40,8 @@ class BotLOG:
     
     def double_click_button(self, button):
         """double click from mouse"""
-        self.mouse.click(button, 2)
-    
+        self.mouse.click(button, 2)       
+
     def write_key(self, key):
         """press key"""
         pyautogui.write(key)
@@ -45,6 +49,34 @@ class BotLOG:
     def is_mouse_moved(self, current, prev):
         """detect if mouse was moved by user"""
         return prev != current and prev != (-1,-1)
+    
+    def mouse_logger(self, log):
+        """ gether all mouse features"""
+        event_t = log["event_t"]
+        if event_t == EventLOG.MOUSE_MOVEMENT:
+            m_move = self.move_mouse(log['x'], log['y'])
+            if not m_move:
+                return (False, log["datetime"])
+        elif event_t == EventLOG.BUTTON_PRESSED:
+            self.press_datetime = log["datetime"]
+            button = ButtonConverter(log["button_t"]).to_button_controller()
+            if self.prev_button == event_t:
+                self.double_click_button(button)
+                self.index += 1 # skip next line
+            else:
+                self.click_button(button)
+        elif event_t == EventLOG.BUTTON_RELEASED:
+            button = ButtonConverter(log["button_t"]).to_button_string()
+            x, y = float(log['x']), float(log['y'])
+            release_datetime = log["datetime"]
+            drag_duration = abs(release_datetime - self.press_datetime)
+            pyautogui.dragTo(x, y, drag_duration.total_seconds(), button=button) 
+        elif event_t == EventLOG.MOUSE_SCROLL:
+            y_scroll = int(log["y_scroll"])
+            pyautogui.scroll(y_scroll)
+        self.prev_mouse_pos = (int(log['x']),int(log['y']))
+        self.prev_button = event_t
+        return (True, None)
 
     def read_log(self, datetime=None):
         """
@@ -52,45 +84,22 @@ class BotLOG:
         return True if the file was execute with success
         else return (False, datetime)
         """
-        prev_button = "" # use for 2-click
-        prev_mouse_pos = (-1,-1) # use for detect mouse movement
-        press_datetime = 0 # time press button
+        self.prev_button = "" # use for 2-click
+        self.prev_mouse_pos = (-1,-1) # use for detect mouse movement
+        self.press_datetime = 0 # time press button
+        result = (True, None)
         for chunck in self.logs:
             for index in range(chunck.shape[0]):
                 def resume_at(index, datetime):
                     if datetime != None:
                         return chunck[chunck["datetime"] == datetime].index[0]
                     return index
-                index = resume_at(index,datetime)
+                self.index = resume_at(index,datetime)
                 log = chunck.iloc[index]
-                event_t = log["event_t"]
-                if event_t == EventLOG.MOUSE_MOVEMENT:
-                    x, y = float(log['x']), float(log['y'])
-                    current_mouse_pos = (pyautogui.position()[0],pyautogui.position()[1])
-                    if self.is_mouse_moved(current_mouse_pos, prev_mouse_pos):
-                        return (False, log["datetime"])
-                    self.move_mouse(x, y)
-                elif event_t == EventLOG.BUTTON_PRESSED:
-                    press_datetime = log["datetime"]
-                    button = ButtonConverter(log["button_t"]).to_button_controller()
-                    # double click button management
-                    if prev_button == event_t:
-                        self.double_click_button(button)
-                        index += 1
-                    else:
-                        self.click_button(button)
-                elif event_t == EventLOG.BUTTON_RELEASED:
-                    button = ButtonConverter(log["button_t"]).to_button_string()
-                    x, y = float(log['x']), float(log['y'])
-                    release_datetime = log["datetime"]
-                    drag_duration = abs(release_datetime - press_datetime)
-                    pyautogui.dragTo(x, y, drag_duration.total_seconds(), button=button)
-                elif event_t == EventLOG.MOUSE_SCROLL:
-                    y_scroll = int(log["y_scroll"])
-                    pyautogui.scroll(y_scroll)
-                prev_mouse_pos = (int(log['x']),int(log['y']))
-                prev_button = event_t
-        return (True, None)
+                result = self.mouse_logger(log)
+                if not result[0]:
+                    return result
+        return result
 
 
     def run(self):
